@@ -1,0 +1,336 @@
+{
+  "info": {
+    "_postman_id": "37c9c331-4c8d-4cb3-b699-09e98bf3592c",
+    "name": "Validar com Newman",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "57536120"
+  },
+  "item": [
+    {
+      "name": "Validar Cadastro de produto",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "pm.sendRequest({",
+              "    url: \"https://northwind-test-platform.vercel.app/api/v1/auth/login\",",
+              "    method: \"POST\",",
+              "    header: {",
+              "        \"Content-Type\": \"application/json\"",
+              "    },",
+              "    body: {",
+              "        mode: \"raw\",",
+              "        raw: JSON.stringify({",
+              "            email: \"admin@qatest.com\",",
+              "            password: \"Teste@123\"",
+              "        })",
+              "    }",
+              "}, function (err, res) {",
+              "    let json = res.json();",
+              "    pm.environment.set(\"tokenDinamico\", json.data.token);",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// 1. Fornecedor criado com sucesso\r",
+              "pm.test(\"Fornecedor é cadastrado com sucesso\", function () {\r",
+              "    pm.response.to.have.status(201);\r",
+              "});\r",
+              "\r",
+              "// 2. Processamento do cadastro concluído\r",
+              "pm.test(\"Fornecedor processa o cadastro adequadamente\", function () {\r",
+              "    pm.expect(pm.response.code).to.be.oneOf([201, 202]);\r",
+              "});\r",
+              "\r",
+              "// 3. Tempo de resposta dentro do limite aceitável\r",
+              "pm.test(\"Fornecedor é cadastrado dentro do tempo limite estabelecido\", function () {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(400);\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{tokenDinamico}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"name\": \"{{$randomCurrencyName}}\",\n    \"price\": 99.9,\n    \"stock_quantity\": 50,\n    \"sku\": \"{{$randomAdjective}}\",\n    \"category_id\": 10,\n    \"supplier_id\": 10\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseURL}}/products",
+          "host": [
+            "{{baseURL}}"
+          ],
+          "path": [
+            "products"
+          ],
+          "query": [
+            {
+              "key": "",
+              "value": "",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Validar cadastro de fornecedor",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "function gerarCNPJ() {\r",
+              "    const n = 9;\r",
+              "    const rand = (m) => Math.floor(Math.random() * m);\r",
+              "    const mod = (dividendo, divisor) => Math.round(dividendo - (Math.floor(dividendo / divisor) * divisor));\r",
+              "\r",
+              "    const n1 = rand(n), n2 = rand(n), n3 = rand(n), n4 = rand(n), n5 = rand(n), n6 = rand(n), n7 = rand(n), n8 = rand(n);\r",
+              "    const n9 = 0, n10 = 0, n11 = 0, n12 = 1; // Matriz 0001\r",
+              "\r",
+              "    let d1 = n12*2 + n11*3 + n10*4 + n9*5 + n8*6 + n7*7 + n6*8 + n5*9 + n4*2 + n3*3 + n2*4 + n1*5;\r",
+              "    d1 = 11 - (mod(d1, 11));\r",
+              "    if (d1 >= 10) d1 = 0;\r",
+              "\r",
+              "    let d2 = d1*2 + n12*3 + n11*4 + n10*5 + n9*6 + n8*7 + n7*8 + n6*9 + n5*2 + n4*3 + n3*4 + n2*5 + n1*6;\r",
+              "    d2 = 11 - (mod(d2, 11));\r",
+              "    if (d2 >= 10) d2 = 0;\r",
+              "\r",
+              "    return `${n1}${n2}${n3}${n4}${n5}${n6}${n7}${n8}${n9}${n10}${n11}${n12}${d1}${d2}`;\r",
+              "}\r",
+              "\r",
+              "pm.variables.set(\"cnpj_unico\", gerarCNPJ());"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Fornecedor e criado com sucesso\", function () {\r",
+              "    pm.response.to.have.status(201);\r",
+              "});\r",
+              "pm.test(\"Fornecedor e processado em tempo adequado\", function () {\r",
+              "    pm.expect(pm.response.responseTime).to.be.below(400);\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{tokenDinamico}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"company_name\": \"{{$randomCompanyName}}\",\n  \"contact_name\": \"{{$randomFullName}}\",\n  \"email\": \"{{$randomEmail}}\",\n  \"phone\": \"(11) 98765-4321\",\n  \"cnpj\": \"{{cnpj_unico}}\",\n  \"uf\": \"SP\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseURL}}/suppliers",
+          "host": [
+            "{{baseURL}}"
+          ],
+          "path": [
+            "suppliers"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Validar cadastro de categoria",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// 1. Categoria criada com sucesso",
+              "pm.test(\"Categoria é cadastrada com sucesso\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "// 2. Categoria apresenta nome preenchido",
+              "pm.test(\"Categoria cadastrada apresenta nome preenchido\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data.name).to.exist;",
+              "    pm.expect(jsonData.data.name).to.not.be.empty;",
+              "});",
+              "",
+              "// 3. Categoria apresenta descrição preenchida",
+              "pm.test(\"Categoria cadastrada apresenta descrição preenchida\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data.description).to.exist;",
+              "    pm.expect(jsonData.data.description).to.not.be.empty;",
+              "});",
+              "",
+              "// 4. Categoria permanece ativa no sistema",
+              "pm.test(\"Categoria cadastrada permanece ativa no sistema\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data.is_active).to.be.true;",
+              "});",
+              "",
+              "// 5. Categoria exibe mensagem de sucesso no cadastro",
+              "pm.test(\"Categoria cadastrada exibe mensagem de sucesso no cadastro\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.mensagens).to.be.an('array');",
+              "    pm.expect(jsonData.mensagens).to.include(\"Categoria criada com sucesso!\");",
+              "});",
+              "",
+              "// 6. Categoria recebe um identificador válido",
+              "pm.test(\"Categoria cadastrada recebe um identificador válido\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data.id).to.be.a('number');",
+              "    pm.expect(jsonData.data.id).to.be.greaterThan(0);",
+              "});",
+              "",
+              "// 7. Categoria apresenta identificador amigável preenchido",
+              "pm.test(\"Categoria cadastrada apresenta identificador amigável preenchido\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data.slug).to.exist;",
+              "    pm.expect(jsonData.data.slug).to.not.be.empty;",
+              "});",
+              "",
+              "// 8. Categoria registra a data e hora do cadastro",
+              "pm.test(\"Categoria cadastrada registra a data e hora do cadastro\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data.created_at).to.exist;",
+              "    var isoRegex = /^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$/;",
+              "    pm.expect(jsonData.data.created_at).to.match(isoRegex);",
+              "});",
+              "",
+              "// 9. Categoria exibe todas as informações obrigatórias",
+              "pm.test(\"Categoria cadastrada exibe todas as informações obrigatórias\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property('data');",
+              "    pm.expect(jsonData.data).to.have.property('id');",
+              "    pm.expect(jsonData.data).to.have.property('name');",
+              "    pm.expect(jsonData.data).to.have.property('slug');",
+              "    pm.expect(jsonData.data).to.have.property('description');",
+              "    pm.expect(jsonData.data).to.have.property('image_url');",
+              "    pm.expect(jsonData.data).to.have.property('icon');",
+              "    pm.expect(jsonData.data).to.have.property('display_order');",
+              "    pm.expect(jsonData.data).to.have.property('is_active');",
+              "    pm.expect(jsonData.data).to.have.property('created_at');",
+              "});",
+              "",
+              "// 10. Categoria exibe mensagem com a origem do registro",
+              "pm.test(\"Categoria cadastrada exibe mensagem com a origem do registro\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.mensagens).to.be.an('array');",
+              "    var supabaseMessage = jsonData.mensagens.find(function(msg) {",
+              "        return msg.includes(\"Supabase\");",
+              "    });",
+              "    pm.expect(supabaseMessage).to.exist;",
+              "    pm.expect(supabaseMessage).to.include(\"Verificado: Salvo no banco Supabase\");",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{tokenDinamico}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"{{$randomJobArea}}-{{$randomInt}}\",\n  \"description\": \"{{$randomLoremSentence}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseURL}}/categories",
+          "host": [
+            "{{baseURL}}"
+          ],
+          "path": [
+            "categories"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
